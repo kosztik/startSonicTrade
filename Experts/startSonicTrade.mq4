@@ -12,7 +12,7 @@
 extern double LOTs=0.01;
 
 //--- init global variables
-double dragonTop[100],dragonCenter[100],dragonBottom[100],trend[100];
+double dragonTop[100],dragonCenter[100],dragonBottom[100],dragonTopH1[100],dragonCenterH1[100],dragonBottomH1[100],trend[100],trendH1[100];;
 bool dontesiMatrix[3];
 int flipflop=0;
 //+------------------------------------------------------------------+
@@ -44,7 +44,14 @@ void dragonAndTrendHistory()
       dragonTop[i]=NormalizeDouble(iMA(NULL,NULL,34,0,1,PRICE_HIGH,i),5);
       dragonBottom[i]=NormalizeDouble(iMA(NULL,NULL,34,0,1,PRICE_LOW,i), 5);
       dragonCenter[i]=NormalizeDouble(iMA(NULL,NULL,34,0,1,PRICE_CLOSE,i), 5);
+
+      dragonTopH1[i]=NormalizeDouble(iMA(NULL,PERIOD_H1,34,0,1,PRICE_HIGH,i),5);
+      dragonBottomH1[i]=NormalizeDouble(iMA(NULL,PERIOD_H1,34,0,1,PRICE_LOW,i), 5);
+      dragonCenterH1[i]=NormalizeDouble(iMA(NULL,PERIOD_H1,34,0,1,PRICE_CLOSE,i), 5);
+
       trend[i]=NormalizeDouble(iMA(NULL,NULL,89,0,1,PRICE_CLOSE,i),5);
+
+      trendH1[i]=NormalizeDouble(iMA(NULL,PERIOD_H1,89,0,1,PRICE_CLOSE,i),5);
      }
 
   }
@@ -73,7 +80,7 @@ double pips(bool irany) // true = fel, false = le
 //+------------------------------------------------------------------+
 //| Itt történik a vásárlás vagy az eladás                          |
 //+------------------------------------------------------------------+
-void piacraMegyek(string eztTeszem, string devizaPar)
+void piacraMegyek(string eztTeszem,string devizaPar)
   {
    int ticket,orderType;
    string orderSymbol;
@@ -86,11 +93,11 @@ void piacraMegyek(string eztTeszem, string devizaPar)
       orderType=OrderType();
       orderSymbol=OrderSymbol();
 
-      if(orderType==OP_BUY) 
+      if(orderType==OP_BUY)
         {
          if(OrderMagicNumber() == 999 && orderSymbol == devizaPar) return;
         }
-      if(orderType==OP_SELL) 
+      if(orderType==OP_SELL)
         {
          if(OrderMagicNumber() == 999 && orderSymbol == devizaPar) return;
         }
@@ -135,7 +142,7 @@ void OnTick()
 */
    double haOpenPrev=NormalizeDouble(iCustom(Symbol(),PERIOD_M15,"Heiken_Ashi_Smoothed",0,5,1),5);
    double haClosePrev=NormalizeDouble(iCustom(Symbol(),PERIOD_M15,"Heiken_Ashi_Smoothed",0,6,1),5);
-      
+
    int min,sec;
 
    min = Time[0] + PERIOD_M15*60 - CurTime();
@@ -151,10 +158,14 @@ void OnTick()
       // hol van a trend a dragonhoz képest ?
       if(trend[1]> dragonCenter[1]) dontesiMatrix[0] = False; //sell - alatta van a dragon
       if(trend[1] < dragonCenter[1]) dontesiMatrix[0] = True; //buy - fölötte van a dragon
+      
+      // ue. H1-en
+      if(trendH1[1]>dragonCenterH1[1]) dontesiMatrix[2]=False; //sell - alatta van a dragon
+      if(trendH1[1]<dragonCenterH1[1]) dontesiMatrix[2]=True; //buy - fölötte van a dragon
 
-      if (haOpenPrev>haClosePrev) dontesiMatrix[1] = True;  // Long
-      if (haOpenPrev<haClosePrev) dontesiMatrix[1] = False; // Sell
-                                                              // mit csinált a gyertya a dragonhoz képest ?
+      if(haOpenPrev>haClosePrev) dontesiMatrix[1] = True;  // Long
+      if(haOpenPrev<haClosePrev) dontesiMatrix[1] = False; // Sell
+                                                           // mit csinált a gyertya a dragonhoz képest ?
 /*
       
       kilépett belõle ?
@@ -162,17 +173,17 @@ void OnTick()
    */
 
       // lefelé
-      if(dragonBottom[1]<Open[1] && dragonBottom[1]>Close[1] && dontesiMatrix[1]==False && dontesiMatrix[0]==False)
+      if(dragonBottom[1]<Open[1] && dragonBottom[1]>Close[1] && dontesiMatrix[1]==False && dontesiMatrix[0]==False && dontesiMatrix[2]==False)
         { // most kilépett lefele!
          Print("kilépett lefelé!");
-         piacraMegyek("sell", Symbol());
+         piacraMegyek("sell",Symbol());
         }
 
       // felfelé
-      if(dragonTop[1]>Open[1] && dragonTop[1]<Close[1] && dontesiMatrix[1] == True && dontesiMatrix[0]==True)
+      if(dragonTop[1]>Open[1] && dragonTop[1]<Close[1] && dontesiMatrix[1]==True && dontesiMatrix[0]==True  && dontesiMatrix[2]==True)
         { // most kilépett lefele!
          Print("kilépett felfelé!");
-         piacraMegyek("buy", Symbol());
+         piacraMegyek("buy",Symbol());
 
         }
 
@@ -194,7 +205,6 @@ void OnTick()
          // a TL nem a dragon alatt van, de elég közel. (~200pip nél kevesebb). felfelé lépett ki
          Print("Kilépett felfelé, de a TL nem jó helyen van");
         }
-
 
      }
 
