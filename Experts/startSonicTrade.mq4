@@ -133,7 +133,9 @@ void OnTick()
    indikátorokat
    
 */
-
+   double haOpenPrev=NormalizeDouble(iCustom(Symbol(),PERIOD_M15,"Heiken_Ashi_Smoothed",0,5,1),5);
+   double haClosePrev=NormalizeDouble(iCustom(Symbol(),PERIOD_M15,"Heiken_Ashi_Smoothed",0,6,1),5);
+      
    int min,sec;
 
    min = Time[0] + PERIOD_M15*60 - CurTime();
@@ -150,6 +152,8 @@ void OnTick()
       if(trend[1]> dragonCenter[1]) dontesiMatrix[0] = False; //sell - alatta van a dragon
       if(trend[1] < dragonCenter[1]) dontesiMatrix[0] = True; //buy - fölötte van a dragon
 
+      if (haOpenPrev>haClosePrev) dontesiMatrix[1] = True;  // Long
+      if (haOpenPrev<haClosePrev) dontesiMatrix[1] = False; // Sell
                                                               // mit csinált a gyertya a dragonhoz képest ?
 /*
       
@@ -158,14 +162,14 @@ void OnTick()
    */
 
       // lefelé
-      if(dragonBottom[1]<Open[1] && dragonBottom[1]>Close[1] && dontesiMatrix[0]==False)
+      if(dragonBottom[1]<Open[1] && dragonBottom[1]>Close[1] && dontesiMatrix[1]==False && dontesiMatrix[0]==False)
         { // most kilépett lefele!
          Print("kilépett lefelé!");
          piacraMegyek("sell", Symbol());
         }
 
       // felfelé
-      if(dragonTop[1]>Open[1] && dragonTop[1]<Close[1] && dontesiMatrix[0]==True)
+      if(dragonTop[1]>Open[1] && dragonTop[1]<Close[1] && dontesiMatrix[1] == True && dontesiMatrix[0]==True)
         { // most kilépett lefele!
          Print("kilépett felfelé!");
          piacraMegyek("buy", Symbol());
