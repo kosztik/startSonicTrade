@@ -1,2 +1,3 @@
 # startSonicTrade
-# startSonicTrade
+
+Vakvágány, természetesen nem működik jól. Azonban meghagyom mert olyan kódrészletek vannak benne, melyek jól jönnek más programjaimban...
